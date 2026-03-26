@@ -1,0 +1,6 @@
+*.db
+*.vcf
+*.zip
+
+result/
+WhatsApp/
