@@ -1,0 +1,13 @@
+{
+  "name": "wce",
+  "private": true,
+  "scripts": {
+    "start": "bun run ./start.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

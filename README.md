@@ -1,30 +1,45 @@
 # WhatsApp Chat Export Flow
 
-This project builds a Docker image, runs the WhatsApp export process, and packages the generated chat JSON files into a zip archive.
+This project builds a Docker image, runs the WhatsApp export process, filters out group chats, and packages the remaining chat JSON files into a zip archive.
 
-## What `start.sh` Does
+## Bun Entry Point
 
-[`start.sh`](/home/pratik/github/devspace/wce/start.sh) performs these steps:
+Use [`start.ts`](/home/pratik/github/devspace/wce/start.ts) as the main entry point.
+
+Run it with:
+
+```bash
+bun run start.ts
+```
+
+Unsafe mode:
+
+```bash
+bun run start.ts --unsafe
+```
+
+## What `start.ts` Does
+
+[`start.ts`](/home/pratik/github/devspace/wce/start.ts) performs these steps:
 
 1. Builds the Docker image as `wce`.
 2. Runs the container with the current directory mounted to `/work`.
-3. Looks for JSON files directly inside `./result` only.
-4. Copies those JSON files into a temporary `chats/` directory.
-5. Creates a zip archive named `whatsapp.zip` in the project root.
+3. Reads only top-level `*.json` files from `./result`.
+4. Ignores any file whose parsed [`WSchema`](/home/pratik/github/devspace/wce/src/types/WSchema.ts) contains a group chat key ending in `@g.us`.
+5. In default mode, shows the remaining files as a numbered list with human-readable sizes.
+6. Creates a zip archive named `whatsapp.zip` in the project root with the required `chats/` directory structure.
 
-Subdirectories under `./result` are ignored for the zip step.
+Subdirectories under `./result` are ignored.
 
-## `start.sh` Modes
-
-[`start.sh`](/home/pratik/github/devspace/wce/start.sh) supports two modes.
+## Modes
 
 ### Default mode
 
 ```bash
-bash start.sh
+bun run start.ts
 ```
 
-This mode shows a numbered list of top-level JSON files from `./result` before creating the zip.
+This mode is interactive. It shows only non-group JSON files from `./result`.
 
 Each entry shows:
 
@@ -36,22 +51,21 @@ Example prompt:
 ```text
 1. Alice.json (1.2MiB)
 2. Bob.json (824KiB)
-3. Team Chat.json (3.8MiB)
 ```
 
-You can then type numbers like `1 3` to include only selected files
+You can then type numbers like `1 2` to include only selected files.
 
 ### Unsafe mode
 
 ```bash
-bash start.sh --unsafe
+bun run start.ts --unsafe
 ```
 
-This mode includes all top-level `*.json` files from `./result` in the zip archive without prompting.
+This mode skips the selection prompt and includes all non-group top-level `*.json` files from `./result`.
 
-## Manual Commands
+## Manual Docker Commands
 
-If you do not want to use [`start.sh`](/home/pratik/github/devspace/wce/start.sh), run these commands one by one:
+If you do not want to use [`start.ts`](/home/pratik/github/devspace/wce/start.ts), you can still run the Docker steps manually:
 
 ### 1. Build the Docker image
 
@@ -62,7 +76,7 @@ docker build -t wce .
 ### 2. Run the container
 
 ```bash
-docker run --rm -v "$PWD:/work" wce:latest
+docker run --rm --mount type=bind,source="$PWD",target=/work wce:latest
 ```
 
 This should generate JSON files inside:
@@ -71,23 +85,18 @@ This should generate JSON files inside:
 ./result
 ```
 
-### 3. Create the required zip structure
+The filtering, interactive selection, and zip creation logic are handled by [`start.ts`](/home/pratik/github/devspace/wce/start.ts).
 
-```bash
-mkdir -p tmp/chats
-find result -maxdepth 1 -type f -name '*.json' -exec cp {} tmp/chats/ \;
-cd tmp && zip -r ../whatsapp.zip chats
-```
+## Group Chat Filtering
 
-After that, the zip file will be available in the project root.
+Files representing group chats are automatically excluded before selection and packaging.
 
-If you want a manual equivalent of the default safe selection flow, first inspect the files:
+The exclusion rule is based on the top-level keys in [`WSchema`](/home/pratik/github/devspace/wce/src/types/WSchema.ts):
 
-```bash
-find result -maxdepth 1 -type f -name '*.json' -exec ls -lh {} \;
-```
+- direct chat: `${string}@s.whatsapp.net`
+- group chat: `${string}@g.us`
 
-Then copy only the files you want into `tmp/chats` before creating the zip.
+If a JSON file contains a top-level key ending in `@g.us`, it is ignored.
 
 ## Zip File Naming
 
@@ -103,7 +112,7 @@ The archive filename is flexible. The internal directory structure is not.
 
 ## Required Zip Structure
 
-The zip file must contain a top-level directory named `chats`, and all chat JSON files must be placed inside that directory.
+The zip file must contain a top-level directory named `chats`, and all included chat JSON files must be placed inside that directory.
 
 Correct structure:
 
