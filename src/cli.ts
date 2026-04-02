@@ -49,10 +49,12 @@ function formatSize(bytes: number): string {
 }
 
 export async function promptForSelection(files: JsonFileInfo[]) {
+  const sortedFiles = [...files].sort((a, b) => b.size - a.size);
+
   stdout.write("Select files to include in the zip.\n");
   stdout.write("Enter numbers separated by spaces.\n");
 
-  files.forEach((file, index) => {
+  sortedFiles.forEach((file, index) => {
     stdout.write(`${index + 1}. ${file.name} (${formatSize(file.size)})\n`);
   });
 
@@ -77,7 +79,7 @@ export async function promptForSelection(files: JsonFileInfo[]) {
       }
 
       const index = Number(indexText);
-      if (index < 1 || index > files.length) {
+      if (index < 1 || index > sortedFiles.length) {
         stderr.write(`Selection out of range: ${indexText}\n`);
         process.exit(1);
       }
@@ -87,7 +89,7 @@ export async function promptForSelection(files: JsonFileInfo[]) {
       }
 
       seen.add(index);
-      selectedFiles.push(files[index - 1]!);
+      selectedFiles.push(sortedFiles[index - 1]!);
     }
 
     return selectedFiles;

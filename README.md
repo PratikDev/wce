@@ -1,6 +1,6 @@
 # WhatsApp Chat Export Flow
 
-This project builds a Docker image, runs the WhatsApp export process, filters out group chats, and packages the remaining chat JSON files into a zip archive.
+This project builds a Docker image, runs the WhatsApp export process, keeps only one-to-one chats, and packages the remaining chat JSON files into a zip archive.
 
 ## Bun Entry Point
 
@@ -25,7 +25,7 @@ bun run start.ts --unsafe
 1. Builds the Docker image as `wce`.
 2. Runs the container with the current directory mounted to `/work`.
 3. Reads only top-level `*.json` files from `./result`.
-4. Ignores any file whose parsed [`WSchema`](/home/pratik/github/devspace/wce/src/types/WSchema.ts) contains a group chat key ending in `@g.us`.
+4. Keeps only files whose parsed [`WSchema`](/home/pratik/github/devspace/wce/src/types/WSchema.ts) contains only one-to-one chat keys ending in `@s.whatsapp.net`.
 5. In default mode, shows the remaining files as a numbered list with human-readable sizes.
 6. Creates a zip archive named `whatsapp.zip` in the project root with the required `chats/` directory structure.
 
@@ -39,7 +39,7 @@ Subdirectories under `./result` are ignored.
 bun run start.ts
 ```
 
-This mode is interactive. It shows only non-group JSON files from `./result`.
+This mode is interactive. It shows only one-to-one chat JSON files from `./result`.
 
 Each entry shows:
 
@@ -61,7 +61,7 @@ You can then type numbers like `1 2` to include only selected files.
 bun run start.ts --unsafe
 ```
 
-This mode skips the selection prompt and includes all non-group top-level `*.json` files from `./result`.
+This mode skips the selection prompt and includes all one-to-one top-level `*.json` files from `./result`.
 
 ## Manual Docker Commands
 
@@ -87,16 +87,16 @@ This should generate JSON files inside:
 
 The filtering, interactive selection, and zip creation logic are handled by [`start.ts`](/home/pratik/github/devspace/wce/start.ts).
 
-## Group Chat Filtering
+## One-to-One Chat Filtering
 
-Files representing group chats are automatically excluded before selection and packaging.
+Only one-to-one chat files are included before selection and packaging.
 
 The exclusion rule is based on the top-level keys in [`WSchema`](/home/pratik/github/devspace/wce/src/types/WSchema.ts):
 
 - direct chat: `${string}@s.whatsapp.net`
 - group chat: `${string}@g.us`
 
-If a JSON file contains a top-level key ending in `@g.us`, it is ignored.
+If a JSON file contains any top-level key that does not end in `@s.whatsapp.net`, it is ignored.
 
 ## Zip File Naming
 

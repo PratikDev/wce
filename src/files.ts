@@ -24,14 +24,14 @@ export async function getTopLevelJsonFiles(resultDir: string): Promise<JsonFileI
   );
 }
 
-export async function filterOutGroupChats(files: JsonFileInfo[]): Promise<JsonFileInfo[]> {
+export async function filterToOneToOneChats(files: JsonFileInfo[]): Promise<JsonFileInfo[]> {
   const filtered = await Promise.all(
     files.map(async (file) => {
       const raw = await readFile(file.path, "utf8");
       const parsed = JSON.parse(raw) as WSchema;
-      const hasGroupChat = Object.keys(parsed).some((chatId) => chatId.endsWith("@g.us"));
+      const isOneToOneChatFile = Object.keys(parsed).every((chatId) => chatId.endsWith("@s.whatsapp.net"));
 
-      return hasGroupChat ? null : file;
+      return isOneToOneChatFile ? file : null;
     }),
   );
 

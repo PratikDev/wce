@@ -6,7 +6,7 @@ import { argv, exit, stderr, stdout } from "node:process";
 
 import { parseArgs, promptForSelection, usage } from "./src/cli.ts";
 import { buildImage, runContainer } from "./src/docker.ts";
-import { filterOutGroupChats, getTopLevelJsonFiles } from "./src/files.ts";
+import { filterToOneToOneChats, getTopLevelJsonFiles } from "./src/files.ts";
 import { buildZip } from "./src/zip.ts";
 
 const IMAGE_NAME = "wce";
@@ -36,10 +36,10 @@ async function main() {
     exit(1);
   }
 
-  const directMessageFiles = await filterOutGroupChats(files);
+  const directMessageFiles = await filterToOneToOneChats(files);
 
   if (directMessageFiles.length === 0) {
-    stderr.write(`No non-group JSON files found in ${RESULT_DIR}\n`);
+    stderr.write(`No one-to-one chat JSON files found in ${RESULT_DIR}\n`);
     exit(1);
   }
 
