@@ -53,22 +53,12 @@ function u32(value: number) {
 }
 
 export async function buildZip(files: JsonFileInfo[]) {
-  const entries: ZipEntry[] = [
-    {
-      name: "chats/",
-      data: Buffer.alloc(0),
-      crc: 0,
-      size: 0,
-      date: new Date(),
-      offset: 0,
-      isDirectory: true,
-    },
-  ];
+  const entries: ZipEntry[] = [];
 
   for (const file of files) {
     const data = Buffer.from(await readFile(file.path));
     entries.push({
-      name: `chats/${file.name}`,
+      name: file.name,
       data,
       crc: crc32(data),
       size: data.length,

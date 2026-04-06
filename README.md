@@ -27,7 +27,7 @@ bun run start.ts --unsafe
 3. Reads only top-level `*.json` files from `./result`.
 4. Keeps only files whose parsed [`WSchema`](/home/pratik/github/devspace/wce/src/types/WSchema.ts) contains only one-to-one chat keys ending in `@s.whatsapp.net`.
 5. In default mode, shows the remaining files as a numbered list with human-readable sizes.
-6. Creates a zip archive named `whatsapp.zip` in the project root with the required `chats/` directory structure.
+6. Creates a zip archive named `whatsapp.zip` in the project root with the selected JSON files at the top level of the archive.
 
 Subdirectories under `./result` are ignored.
 
@@ -108,41 +108,33 @@ Any filename ending in `.zip` is acceptable, for example:
 - `export.zip`
 - `customer-a.zip`
 
-The archive filename is flexible. The internal directory structure is not.
+The archive filename is flexible. The JSON files are written at the top level of the archive.
 
 ## Required Zip Structure
 
-The zip file must contain a top-level directory named `chats`, and all included chat JSON files must be placed inside that directory.
+The zip file must contain the selected JSON files directly at the root of the archive.
 
 Correct structure:
 
 ```text
 anything.zip
-└── chats/
-    ├── contact1.json
-    ├── contact2.json
-    └── contact3.json
+├── contact1.json
+├── contact2.json
+└── contact3.json
 ```
 
 ## Invalid Structures
 
 These are not valid:
 
-- JSON files at the root of the zip
-- A different top-level folder name such as `results/` or `json/`
-- Nested chat files like `chats/2026/contact1.json`
+- A wrapper folder such as `chats/`, `results/`, or `json/`
+- Nested chat files inside any subdirectory
 
 Examples of invalid layouts:
 
 ```text
 anything.zip
-├── contact1.json
-└── contact2.json
-```
-
-```text
-anything.zip
-└── results/
+└── chats/
     ├── contact1.json
     └── contact2.json
 ```
